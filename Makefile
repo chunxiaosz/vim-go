@@ -1,7 +1,31 @@
-all: test
+VIMS ?= vim-8.2 vim-9.1 nvim
+TEST_FLAGS ?=
+
+all: install lint test
+
+install:
+	@echo "==> Installing Vims: $(VIMS)"
+	@for vim in $(VIMS); do \
+		./scripts/install-vim $$vim; \
+	done
+	./scripts/install-tools $(firstword $(VIMS));
 
 test:
-	@echo "==> Running tests"
-	@./scripts/test.sh
+	@echo "==> Running tests for $(VIMS)"
+	@for vim in $(VIMS); do \
+		./scripts/test $(TEST_FLAGS) $$vim; \
+	done
 
-.PHONY: all test
+lint:
+	@echo "==> Running linting tools"
+	@./scripts/lint vim-9.1
+
+docker:
+	@echo "==> Building/starting Docker container"
+	@./scripts/docker-test
+
+clean:
+	@echo "==> Cleaning /tmp/vim-go-test"
+	@rm -rf /tmp/vim-go-test
+
+.PHONY: all test install clean lint docker
